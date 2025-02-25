@@ -1,55 +1,69 @@
 from collections import defaultdict
 
-# Conjuntos para armazenar ciclos encontrados
+# Estruturas de dados para armazenar os ciclos encontrados
 resp = set()
-respCerto = []
+resp_certo = []
 
-# Lista de adjacências para o grafo
+# Lista de adjacência para representar o grafo
 adjlist = defaultdict(list)
 
-# Variáveis auxiliares
-pos = [-1] * 100
+# Lista para marcar os nós visitados
 vis = [-1] * 100
 
-# Lista temporária para armazenar o caminho atual
-v = []
+# Lista para armazenar o caminho atual
+path = []
 
-# Função recursiva para percorrer o grafo e encontrar ciclos
-def f(at, cnt):
-    v.append(at)
-    pos[at] = cnt
+def dfs(at):
+    # Marca o nó como visitado
     vis[at] = 1
+    # Adiciona o nó ao caminho atual
+    path.append(at)
 
+    # Visita os vizinhos do nó atual
     for to in adjlist[at]:
-        if vis[to] != -1:  # Se o nó já foi visitado
-            ciclo = []
-            for i in range(pos[to], len(v)):
-                ciclo.append(v[i])
-            cicloOrdenado = sorted(ciclo)
+        if vis[to] == 1:
+            # Achou um ciclo quando ia revisitar o nó "to"
+            cycle = []
 
-            if tuple(cicloOrdenado) not in resp:
-                resp.add(tuple(cicloOrdenado))
-                respCerto.append(ciclo)
+            # Reconstrói o ciclo a partir do caminho atual
+            for i in range(len(path) - 1, -1, -1):
+                cycle.append(path[i])
+                if path[i] == to:
+                    break
+
+            # Ordena o ciclo para verificar se já foi encontrado
+            ord_cycle = sorted(cycle)
+
+            # Se o ciclo não foi encontrado antes, adiciona ao conjunto de respostas
+            if tuple(ord_cycle) not in resp:
+                resp.add(tuple(ord_cycle))
+                resp_certo.append(cycle)
         else:
-            f(to, cnt + 1)
+            # Se não achou ciclo, continua a busca
+            dfs(to)
 
-    v.pop()  # Remove o último elemento após a recursão
-    vis[at] = -1  # Marca o nó como não visitado
+    # Limpa o nó atual: marca como não visitado e remove do caminho
+    vis[at] = -1
+    path.pop()
 
-# Função principal
+def main():
+    # Define a lista de adjacência do grafo
+    adjlist[0] = [1, 4]
+    adjlist[1] = [2, 5]
+    adjlist[2] = [3]
+    adjlist[3] = [0, 1]
+    adjlist[4] = [1]
+    adjlist[5] = [6]
+    adjlist[6] = [2, 7]
+    adjlist[7] = [8]
+    adjlist[8] = [6]
+
+    # Inicia a busca em profundidade a partir do nó 0
+    dfs(0)
+
+    # Exibe os ciclos encontrados
+    for cycle in resp_certo:
+        print(" ".join(map(str, cycle)))
+
 if __name__ == "__main__":
-    # Definindo a lista de adjacências (exemplo dado)
-    adjlist[0] = [1, 7]
-    adjlist[1] = [2]
-    adjlist[2] = [1, 3]
-    adjlist[3] = [2, 4]
-    adjlist[4] = []
-    adjlist[5] = [4, 6]
-    adjlist[6] = [5, 7]
-    adjlist[7] = [6]
-    # Chama a função para o nó inicial
-    f(0, 0)
-    #f(3, 0)
-    # Imprime todos os ciclos encontrados
-    for ciclo in respCerto:
-        print(" ".join(map(str, ciclo)))
+    main()
